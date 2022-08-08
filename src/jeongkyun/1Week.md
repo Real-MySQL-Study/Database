@@ -1,6 +1,6 @@
 ## 💥1주차 내용정리 
 
-(https://jeongkyun-it.tistory.com/207)
+정리 Link: https://jeongkyun-it.tistory.com/207
 
 <br>
 
