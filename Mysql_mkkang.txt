@@ -1,0 +1,110 @@
+MySQL
+
+
+2. 설치와 설정
+
+
+2.1 MySQL 서버 설치
+ - Tar 또는 Zip으로 압축된 버전
+ - OS별 인스톨러
+ - 소스코드 빌드
+
+2.1.1 버전과 에디션 선택
+ - 가능한 최신 버전으로 선택
+ - 메이저 버전 업그레이드 시 최소 패치 버전 15~20번 이상 릴리즈 된 버전으로 선택
+ - 5.5버전부터 커뮤니티와 엔터프라이즈 에디션의 기능이 달라짐
+ - 핵심내용은 동일하며 특정 부가 기능들만 엔터프라이즈 에디션에 포함되는 방식
+ - 엔터프라이즈 에디션에서만 지원되는 기능
+	Thread Pool
+	Enterprise Audit
+	Enterprise TDE(Master Key 관리)
+	Enterprise Authentication
+	Enterprise Firewall
+	Enterprise Backup
+	MySQL 기술지원
+ - Percona에서 출시하는 Percona Server 백업 및 모니터링 도구 혹은 플러그인을 활용하면 커뮤니티의 부족한 부분 보완 가능
+
+2.1.2 MySQL 설치
+
+  1. 리눅스 서버의 Yum인스톨러 설치
+	MySQL 소프트웨어 Repository 등록을 위해 RPM설치 파일을 직접 받아서 설치
+	설치 순서
+	  1. Yum Repository 정보를 등록
+	  2. Yum Repository가 등록되면 MySQL 설치용 RPM파일들이 저장된 경로를 가진 파일이 생성
+	  3. Yum 인스톨러 명령을 이용해 버전별로 설치 가능한 MySQL 소프트웨어 목록 확인 가능
+	  4. yum search 명령으로 어떤 RPM패키지가 있는지 확인 가능하며 yum --showduplicates list 명령으로 설치 가능한 버전 확인 가능
+	  5. 설정 파일과 시스템 테이블을 준비하는 과정을 거쳐야 시작 가능
+
+  2. 리눅스 서버에서 Yum인스톨러 없이 RPM파일로 설치
+	설치 순서
+	  1. RPM 패키지 파일들을 직접 다운로드
+	  2. 의존 관계 순서대로 설치
+		- Development Libraries
+		- Shared Libraries
+		- Compatibility Libraries
+		- MySQL Configuration
+		- MySQL Server
+		- Client Utilities
+
+
+2.2 MySQL 서버의 시작과 종료
+
+2.2.1 설정 파일 및 데이터 파일 준비
+ - 리눅스는 설치 후 트랜잭션 로그 파일과 시스템 테이블이 준비되어 있지 않음
+ - 서비스용으로 설치한 경우 /etc/my.conf 설정 필요
+ - 초기 데이터 파일과 트랜잭션 로그 파일 생성
+	linux> mysqld --defaults-file=/etc/my.conf --initialize-insecure
+
+2.2.2 시작과 종료
+ - RPM 패키지로 설치했다면 자동으로 mysqld.service 파일이 생성
+ - systemctl 유틸리티를 이용해 기동 및 종료가 가능
+  	linux> systemctl start mysqld
+  	linux> systemctl stop mysqld
+ - 설정 파일 my.cnf의 'mysqld_safe' 섹션의 설정을 참조해서 서버를 실행시키려면 mysqld_safe 스크립트를 이용하여 실행해야 함
+
+2.2.3 서버 연결 테스트
+ - MySQL 소켓 파일을 이용해 접속하는 예제
+	linux> mysql -uroot -p --host=localhost --socket=/tmp/mysql.sock
+ - TCP/IP를 통해 로컬 호스트로 접속하는 예제
+	linux> mysql -uroot -p --host=127.0.0.1 --port =3306
+ - SHOW DATABASES 명령으로 데이터베이스 목록 확인 가능
+
+
+2.4 서버 설정
+ - 단 하나의 설정파일(my.cnf)만 사용
+ - 여러 디렉터리를 순차 탐색하며 처음 발견된 설정 파일을 사용
+ - shell> mysql --help 명령어로 설정 파일 탐색 순서 확인 가능
+
+2.4.1 설정 파일의 구성
+ - 하나의 설정 파일에 여러 설정 그룹을 담을 수 있고 보통 실행 프로그램 이름을 그룹명으로 사용
+
+2.4.2 MySQL 시스템 변수의 특징
+ - MySQL 서버는 기동될 때 설정 파일의 내용을 읽어 메모리와 작동 방식을 초기화하며 접속한 사용자를 제어하기 위한 값을 별도로 저장
+ - 위에 저장된 값을 시스템 변수라 하며 SHOW VARIABLES 또는 SHOW GLOBAL VARIABLES 라는 명령오로 확인 가능
+ - 시스템 변수가 가진 5가지 속성의 의미
+	1. Cmd-Line: MySQL 서버의 명령행 인자로 설정 가능 여부
+	2. Option file: MySQL 설정 파일로 제어가능 여부
+	3. System Var: 시스템 변수 여부
+		8.0버전에서는 모든 시스템 변수는 _를 구분자로 사용하며 명령핸 옵션으로만 사용가능한 설정은 -를 구분자로 사용
+	4. Var Scope: 시스템 변수의 적용 범위
+	5. Dynamic: 시스템 변수가 동적인지 정적인지 구분하는 변수
+		서버가 기동 중인 상태에서 변경이 가능하냐에 따라 동적인지 정적인지 나뉨
+
+2.4.3 글로벌 변수와 세션 변수
+ - 일반적으로 세션별로 적용되는 시스템 변수는 글로벌 변수 뿐만 아니라 세션 변수에도 동시에 존재
+	Var Scope에 Both로 표시
+ - 글로벌 범위의 시스템 변수는 하나의 MySqL 서버 인스턴스에서 전체적으로 영향을 미치는 시스템 변수
+ - 글로벌 범위의 시스템 변수는 주로 서버 자체에 관련된 설정
+ - 세션 범위의 시스템 변수는 MySQL 클라이언트가 MySQL 서버에 접속할 때 기본으로 부여하는 옵션의 기본값을 제어하는데 사용
+
+
+
+3. 사용자 및 권한
+
+
+3.1 사용자 식별
+ - MySQL은 계정 뿐 아니라 사용자의 접속 지범도 계정의 일부여서 계정을 언급할 때 아이디와 호스트를 함께 명시해야 함
+ - 계정의 호스트만 접속 가능하므로 모든 외부 컴퓨터에서 접속가능한 계정을 생성하려면 호스트에 % 문자로 대체해야 함
+
+
+3.2 사용자 계정 관리
